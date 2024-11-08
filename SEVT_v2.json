@@ -1,0 +1,922 @@
+{
+	"name": "SEVT Collab Template",
+	"description": "A comprehensive template for testing your Webex deployments.",
+	"icon": "webex",
+	"summary": "A comprehensive template for monitoring your Webex deployment",
+	"version": "1.0",
+	"defaultName": "SEVT Collab Template",
+	"documentation": "https://docs.thousandeyes.com/product-documentation/best-practices/monitoring-webex-meeting-with-cea#webex-meeting-test-template",
+	"isBuiltIn": false,
+	"certificationLevel": "user",
+	"modules": [
+		"default"
+	],
+	"userInputs": {
+		"interval": {
+			"name": "How often should we run tests?",
+			"title": "",
+			"description": null,
+			"defaultValue": null,
+			"optional": null,
+			"allowedValues": [],
+			"type": "number",
+			"format": null,
+			"enabledCloudAgentGroups": []
+		},
+		"tenant": {
+			"name": "Your Webex Site ID Name",
+			"title": "",
+			"description": "This is your corporate site id used for webex only; you do not need to add .webex.com",
+			"defaultValue": null,
+			"optional": null,
+			"allowedValues": [],
+			"type": "string",
+			"format": null,
+			"enabledCloudAgentGroups": []
+		},
+		"port": {
+			"name": "Webex Port",
+			"title": "",
+			"description": "Webex port to use for Video and Voice tests - default is 5004. You can update it to use 9000 or deploy with 5004 then redploy the template with 9000 if you want to monitor both ports you can not use both at the same time.",
+			"defaultValue": 5004,
+			"optional": null,
+			"allowedValues": [],
+			"type": "number",
+			"format": null,
+			"enabledCloudAgentGroups": []
+		},
+		"targetAgentId": {
+			"name": "Target Webex Agent",
+			"title": "Webex agent we will test to.",
+			"description": "The ThousandEyes Webex Agent located in a Webex data center that we will run tests to. Hint: select the 'Webex Cloud' label to see a list of Webex agents.",
+			"defaultValue": null,
+			"optional": null,
+			"allowedValues": [],
+			"type": "number",
+			"format": null,
+			"enabledCloudAgentGroups": []
+		},
+		"targetRegion": {
+			"name": "Target Region",
+			"title": "",
+			"description": "Optional - if you want to target more than one Webex agent, can deploy multiple Webex templates targeting different agents; you can use this field to append a region name like WEST, EAST, US, EMEA, etc to the Voice and Video test names.",
+			"defaultValue": "",
+			"optional": null,
+			"allowedValues": [],
+			"type": "string",
+			"format": null,
+			"enabledCloudAgentGroups": []
+		},
+		"agents": {
+			"name": "Source Agents",
+			"title": "Agents we will test from.",
+			"description": null,
+			"defaultValue": null,
+			"optional": null,
+			"allowedValues": [],
+			"type": "any",
+			"format": null,
+			"enabledCloudAgentGroups": []
+		}
+	},
+	"labels": {
+		"testVoiceLabel": {
+			"name": "Webex Voice Tests",
+			"type": "tests"
+		},
+		"testVideoLabel": {
+			"name": "Webex Video Tests",
+			"type": "tests"
+		},
+		"testLabel": {
+			"name": "Webex",
+			"type": "tests"
+		}
+	},
+	"tags": {},
+	"tests": {
+		"API Test": {
+			"httpInterval": "{{userInputs.interval}}",
+			"groups": [
+				{
+					"groupId": "{{labels.testLabel.groupId}}"
+				}
+			],
+			"interval": "{{userInputs.interval}}",
+			"requests": [
+				{
+					"headers": [
+						{
+							"value": "keep-alive",
+							"key": "x-custom-header"
+						}
+					],
+					"method": "GET",
+					"name": "Valid",
+					"collectApiResponse": true,
+					"url": "https://crm.wbx.ninja?name=Deadpool"
+				},
+				{
+					"headers": [
+						{
+							"value": "keep-alive",
+							"key": "x-custom-header"
+						}
+					],
+					"method": "GET",
+					"name": "Invalid",
+					"collectApiResponse": true,
+					"url": "https://crm.wbx.ninja?Body=Rafat"
+				}
+			],
+			"type": "api",
+			"url": "https://crm.wbx.ninja",
+			"testName": "{{name}} - {{userInputs.tenant}} - API Test",
+			"agents": "{{userInputs.agents}}"
+		},
+		"PageLoadTest": {
+			"httpInterval": "{{userInputs.interval}}",
+			"groups": [
+				{
+					"groupId": "{{labels.testLabel.groupId}}"
+				}
+			],
+			"interval": "{{userInputs.interval}}",
+			"type": "page-load",
+			"url": "https://{{userInputs.tenant}}.webex.com",
+			"testName": "{{name}} - {{userInputs.tenant}} - Web Page Load",
+			"agents": "{{userInputs.agents}}"
+		},
+		"voiceTest": {
+			"dscpId": 46,
+			"dscp": "EF (DSCP 46)",
+			"port": "{{userInputs.port}}",
+			"targetAgentId": "{{userInputs.targetAgentId}}",
+			"groups": [
+				{
+					"groupId": "{{labels.testLabel.groupId}}"
+				},
+				{
+					"groupId": "{{labels.testVoiceLabel.groupId}}"
+				}
+			],
+			"interval": "{{userInputs.interval}}",
+			"type": "voice",
+			"testName": "{{name}} - {{userInputs.tenant}} - {{#if userInputs.targetRegion}}{{userInputs.targetRegion}} - {{/if}}Voice - {{userInputs.port}}",
+			"agents": "{{userInputs.agents}}"
+		},
+		"WxCC": {
+			"dscpId": 34,
+			"server": "desktop.wxcc-us1.cisco.com",
+			"protocol": "TCP",
+			"dscp": "AF 41 (DSCP 34)",
+			"port": "443",
+			"defaultValue": "us-west-1",
+			"pathTraceMode": "inSession",
+			"groups": [
+				{
+					"groupId": "{{labels.testLabel.groupId}}"
+				},
+				{
+					"groupId": "{{labels.testVideoLabel.groupId}}"
+				}
+			],
+			"interval": "{{userInputs.interval}}",
+			"type": "agent-to-server",
+			"testName": "WxCC Desktop Agent",
+			"agents": "{{userInputs.agents}}"
+		},
+		"dnsTest1": {
+			"domain": "{{userInputs.tenant}}.webex.com CNAME",
+			"groups": [
+				{
+					"groupId": "{{labels.testLabel.groupId}}"
+				}
+			],
+			"interval": "{{userInputs.interval}}",
+			"dnsServers": [],
+			"type": "dns-trace",
+			"testName": "{{name}} - {{userInputs.tenant}} - DNS Trace",
+			"agents": "{{userInputs.agents}}"
+		},
+		"dnsTest": {
+			"domain": "{{userInputs.tenant}}.webex.com CNAME",
+			"groups": [
+				{
+					"groupId": "{{labels.testLabel.groupId}}"
+				}
+			],
+			"interval": "{{userInputs.interval}}",
+			"dnsServers": [],
+			"type": "dns-server",
+			"testName": "{{name}} - {{userInputs.tenant}} - DNS Server",
+			"agents": "{{userInputs.agents}}"
+		},
+		"MSFTTest": {
+			"dscpId": 34,
+			"server": "worldaz.tr.teams.microsoft.com",
+			"protocol": "TCP",
+			"dscp": "AF 41 (DSCP 34)",
+			"port": "443",
+			"defaultValue": "us-west-1",
+			"pathTraceMode": "inSession",
+			"groups": [
+				{
+					"groupId": "{{labels.testLabel.groupId}}"
+				},
+				{
+					"groupId": "{{labels.testVideoLabel.groupId}}"
+				}
+			],
+			"interval": "{{userInputs.interval}}",
+			"type": "agent-to-server",
+			"testName": "MSFT Teams Monitoring",
+			"agents": "{{userInputs.agents}}"
+		},
+		"videoTest": {
+			"dscpId": 34,
+			"protocol": "UDP",
+			"dscp": "AF 41 (DSCP 34)",
+			"port": "{{userInputs.port}}",
+			"targetAgentId": "{{userInputs.targetAgentId}}",
+			"groups": [
+				{
+					"groupId": "{{labels.testLabel.groupId}}"
+				},
+				{
+					"groupId": "{{labels.testVideoLabel.groupId}}"
+				}
+			],
+			"interval": "{{userInputs.interval}}",
+			"type": "agent-to-agent",
+			"testName": "{{name}} - {{userInputs.tenant}} - {{#if userInputs.targetRegion}}{{userInputs.targetRegion}} - {{/if}}Video - {{userInputs.port}}",
+			"agents": "{{userInputs.agents}}",
+			"direction": "BIDIRECTIONAL"
+		},
+		"serverTest": {
+			"protocol": "ICMP",
+			"groups": [
+				{
+					"groupId": "{{labels.testLabel.groupId}}"
+				}
+			],
+			"interval": "{{userInputs.interval}}",
+			"type": "http-server",
+			"url": "https://{{userInputs.tenant}}.webex.com",
+			"testName": "{{name}} - {{userInputs.tenant}} - Server",
+			"agents": "{{userInputs.agents}}"
+		}
+	},
+	"endpointTests": {},
+	"alertRules": {
+		"voiceAlert": {
+			"testIds": [
+				"{{tests.voiceTest.testId}}"
+			],
+			"severity": "MAJOR",
+			"roundsViolatingRequired": 2,
+			"roundsViolatingOutOf": 3,
+			"alertType": "Voice",
+			"expression": "((mos <= 3) || (latency >= 200 ms) || (loss >= 3%))",
+			"ruleName": "{{name}} - {{userInputs.tenant}} - {{#if userInputs.targetRegion}}{{userInputs.targetRegion}} - {{/if}}{{userInputs.port}} - Voice Alert",
+			"roundsViolatingMode": "EXACT",
+			"minimumSources": 1
+		},
+		"videoAlert": {
+			"testIds": [
+				"{{tests.videoTest.testId}}"
+			],
+			"severity": "MAJOR",
+			"roundsViolatingRequired": 2,
+			"roundsViolatingOutOf": 3,
+			"alertType": "End-to-End (Agent)",
+			"expression": "((latency >= 200 ms) || (loss >= 5%))",
+			"ruleName": "{{name}} - {{userInputs.tenant}} - {{#if userInputs.targetRegion}}{{userInputs.targetRegion}} - {{/if}}{{userInputs.port}} - Video Alert",
+			"roundsViolatingMode": "EXACT",
+			"minimumSources": 1,
+			"direction": "TO_TARGET"
+		}
+	},
+	"dashboardFilters": {},
+	"dashboards": {
+		"webexDashboard": {
+			"title": "Webex Health Dashboard",
+			"widgets": [
+				{
+					"visualMode": "Full",
+					"type": "Number",
+					"title": "Voice Health",
+					"numberCards": [
+						{
+							"shouldExcludeAlertSuppressionWindows": true,
+							"metricGroup": "VOIP",
+							"measure": {
+								"type": "MEAN"
+							},
+							"metric": "VOIP_MOS",
+							"description": "MOS - RTP Stream",
+							"fixedTimespan": {
+								"unit": "Days",
+								"value": 1
+							},
+							"filters": {
+								"Test Labels": "[{{labels.testVoiceLabel.groupId}}]"
+							},
+							"dataSource": "CLOUD_AND_ENTERPRISE_AGENTS",
+							"compareToPreviousValue": true
+						},
+						{
+							"shouldExcludeAlertSuppressionWindows": true,
+							"metricGroup": "VOIP",
+							"measure": {
+								"type": "MEAN"
+							},
+							"metric": "VOIP_DISCARDS",
+							"description": "Discards - RTP Stream",
+							"fixedTimespan": {
+								"unit": "Days",
+								"value": 1
+							},
+							"filters": {
+								"Test Labels": "[{{labels.testVoiceLabel.groupId}}]"
+							},
+							"dataSource": "CLOUD_AND_ENTERPRISE_AGENTS",
+							"compareToPreviousValue": true
+						},
+						{
+							"shouldExcludeAlertSuppressionWindows": true,
+							"metricGroup": "VOIP",
+							"measure": {
+								"type": "MEAN"
+							},
+							"metric": "VOIP_LOSS",
+							"description": "Loss - RTP Stream",
+							"fixedTimespan": {
+								"unit": "Days",
+								"value": 1
+							},
+							"filters": {
+								"Test Labels": "[{{labels.testVoiceLabel.groupId}}]"
+							},
+							"dataSource": "CLOUD_AND_ENTERPRISE_AGENTS",
+							"compareToPreviousValue": true
+						},
+						{
+							"shouldExcludeAlertSuppressionWindows": true,
+							"metricGroup": "VOIP",
+							"measure": {
+								"type": "MEAN"
+							},
+							"metric": "VOIP_LATENCY",
+							"description": "Latency - RTP Stream",
+							"fixedTimespan": {
+								"unit": "Days",
+								"value": 1
+							},
+							"filters": {
+								"Test Labels": "[{{labels.testVoiceLabel.groupId}}]"
+							},
+							"dataSource": "CLOUD_AND_ENTERPRISE_AGENTS",
+							"compareToPreviousValue": true
+						},
+						{
+							"shouldExcludeAlertSuppressionWindows": true,
+							"metricGroup": "VOIP",
+							"measure": {
+								"type": "MEAN"
+							},
+							"metric": "VOIP_PDV",
+							"description": "PDV - RTP Stream",
+							"fixedTimespan": {
+								"unit": "Days",
+								"value": 1
+							},
+							"filters": {
+								"Test Labels": "[{{labels.testVoiceLabel.groupId}}]"
+							},
+							"dataSource": "CLOUD_AND_ENTERPRISE_AGENTS",
+							"compareToPreviousValue": true
+						}
+					]
+				},
+				{
+					"visualMode": "Full",
+					"type": "Number",
+					"title": "Video Health",
+					"numberCards": [
+						{
+							"shouldExcludeAlertSuppressionWindows": true,
+							"metricGroup": "AGENT_TO_AGENT",
+							"measure": {
+								"type": "MEAN"
+							},
+							"metric": "ONE_WAY_NET_LOSS_TO_TARGET",
+							"description": "Packet Loss",
+							"fixedTimespan": {
+								"unit": "Days",
+								"value": 1
+							},
+							"filters": {
+								"Test Labels": "[{{labels.testVideoLabel.groupId}}]"
+							},
+							"dataSource": "CLOUD_AND_ENTERPRISE_AGENTS",
+							"compareToPreviousValue": true,
+							"direction": "TO_TARGET"
+						},
+						{
+							"shouldExcludeAlertSuppressionWindows": true,
+							"metricGroup": "AGENT_TO_AGENT",
+							"measure": {
+								"type": "MEAN"
+							},
+							"metric": "ONE_WAY_NET_LATENCY_TO_TARGET",
+							"description": "Latency",
+							"fixedTimespan": {
+								"unit": "Days",
+								"value": 1
+							},
+							"filters": {
+								"Test Labels": "[{{labels.testVideoLabel.groupId}}]"
+							},
+							"dataSource": "CLOUD_AND_ENTERPRISE_AGENTS",
+							"compareToPreviousValue": true,
+							"direction": "TO_TARGET"
+						},
+						{
+							"shouldExcludeAlertSuppressionWindows": true,
+							"metricGroup": "AGENT_TO_AGENT",
+							"measure": {
+								"type": "MEAN"
+							},
+							"metric": "ONE_WAY_NET_JITTER_TO_TARGET",
+							"description": "Jitter",
+							"fixedTimespan": {
+								"unit": "Days",
+								"value": 1
+							},
+							"filters": {
+								"Test Labels": "[{{labels.testVideoLabel.groupId}}]"
+							},
+							"dataSource": "CLOUD_AND_ENTERPRISE_AGENTS",
+							"compareToPreviousValue": true,
+							"direction": "TO_TARGET"
+						},
+						{
+							"shouldExcludeAlertSuppressionWindows": true,
+							"metricGroup": "AGENT_TO_AGENT",
+							"measure": {
+								"type": "MAXIMUM"
+							},
+							"metric": "ONE_WAY_NET_ERROR_TO_TARGET",
+							"description": "Errors",
+							"fixedTimespan": {
+								"unit": "Days",
+								"value": 1
+							},
+							"filters": {
+								"Test Labels": "[{{labels.testVideoLabel.groupId}}]"
+							},
+							"dataSource": "CLOUD_AND_ENTERPRISE_AGENTS",
+							"compareToPreviousValue": true,
+							"direction": "TO_TARGET"
+						},
+						{
+							"shouldExcludeAlertSuppressionWindows": true,
+							"metricGroup": "BGP",
+							"measure": {
+								"type": "MEAN"
+							},
+							"metric": "BGP_REACHABILITY",
+							"description": "BGP Reachability",
+							"fixedTimespan": {
+								"unit": "Days",
+								"value": 1
+							},
+							"filters": {
+								"Test Labels": "[{{labels.testLabel.groupId}}]"
+							},
+							"dataSource": "ROUTING",
+							"compareToPreviousValue": false
+						},
+						{
+							"shouldExcludeAlertSuppressionWindows": true,
+							"metricGroup": "BGP",
+							"measure": {
+								"type": "MEAN"
+							},
+							"metric": "BGP_PATH_CHANGES",
+							"description": "BGP Path Changes",
+							"fixedTimespan": {
+								"unit": "Days",
+								"value": 1
+							},
+							"filters": {
+								"Test Labels": "[{{labels.testLabel.groupId}}]"
+							},
+							"dataSource": "ROUTING",
+							"compareToPreviousValue": false
+						}
+					]
+				},
+				{
+					"metricGroup": "AGENT_TO_AGENT",
+					"shouldExcludeAlertSuppressionWindows": true,
+					"measure": {
+						"type": "MEAN"
+					},
+					"metric": "ONE_WAY_NET_LOSS_TO_TARGET",
+					"visualMode": "Half screen",
+					"filters": {
+						"Test Labels": "[{{labels.testVideoLabel.groupId}}]"
+					},
+					"fixedTimespan": {
+						"unit": "Days",
+						"value": 1
+					},
+					"groupBy": "AGENT",
+					"type": "Map",
+					"title": "Packet Loss - Video",
+					"dataSource": "CLOUD_AND_ENTERPRISE_AGENTS",
+					"direction": "TO_TARGET"
+				},
+				{
+					"metricGroup": "AGENT_TO_AGENT",
+					"shouldExcludeAlertSuppressionWindows": true,
+					"measure": {
+						"type": "MEAN"
+					},
+					"metric": "ONE_WAY_NET_LATENCY_TO_TARGET",
+					"visualMode": "Half screen",
+					"filters": {
+						"Test Labels": "[{{labels.testVideoLabel.groupId}}]"
+					},
+					"fixedTimespan": {
+						"unit": "Days",
+						"value": 1
+					},
+					"groupBy": "AGENT",
+					"type": "Map",
+					"title": "Latency - Video",
+					"dataSource": "CLOUD_AND_ENTERPRISE_AGENTS",
+					"direction": "TO_TARGET"
+				},
+				{
+					"shouldExcludeAlertSuppressionWindows": true,
+					"cards": "TEST",
+					"columns": 2,
+					"visualMode": "Half screen",
+					"filters": {
+						"Test Labels": "[{{labels.testVideoLabel.groupId}}]"
+					},
+					"groupCardsBy": "AGENT",
+					"type": "Color Grid",
+					"title": "Packet Loss - Video",
+					"metricGroup": "AGENT_TO_AGENT",
+					"sortDirection": "Ascending",
+					"measure": {
+						"type": "MEAN"
+					},
+					"metric": "ONE_WAY_NET_LOSS_TO_TARGET",
+					"sortBy": "Alphabetical",
+					"fixedTimespan": {
+						"unit": "Days",
+						"value": 1
+					},
+					"dataSource": "CLOUD_AND_ENTERPRISE_AGENTS",
+					"direction": "TO_TARGET"
+				},
+				{
+					"shouldExcludeAlertSuppressionWindows": true,
+					"cards": "TEST",
+					"columns": 2,
+					"visualMode": "Half screen",
+					"filters": {
+						"Test Labels": "[{{labels.testVideoLabel.groupId}}]"
+					},
+					"groupCardsBy": "AGENT",
+					"type": "Color Grid",
+					"title": "Latency - Video",
+					"metricGroup": "AGENT_TO_AGENT",
+					"sortDirection": "Ascending",
+					"measure": {
+						"type": "MEAN"
+					},
+					"apiLink": "https://api.thousandeyes.com/v7/dashboards/630982757808e524c6b29dc5/naxog",
+					"metric": "ONE_WAY_NET_LATENCY_TO_TARGET",
+					"sortBy": "Alphabetical",
+					"fixedTimespan": {
+						"unit": "Days",
+						"value": 1
+					},
+					"dataSource": "CLOUD_AND_ENTERPRISE_AGENTS",
+					"direction": "TO_TARGET"
+				},
+				{
+					"shouldExcludeAlertSuppressionWindows": true,
+					"visualMode": "Full",
+					"filters": {
+						"Test Labels": "[{{labels.testLabel.groupId}}]"
+					},
+					"type": "Bar Chart: Stacked",
+					"title": "Webex Meeting HTTP Total Time",
+					"metricGroup": "HTTP_SERVER",
+					"isHorizontalBarChart": true,
+					"measure": {
+						"type": "MEAN"
+					},
+					"showLabels": false,
+					"metric": "WEB_FETCH",
+					"axisGroupBy": "AGENT",
+					"sortBy": "Value",
+					"fixedTimespan": {
+						"unit": "Days",
+						"value": 1
+					},
+					"dataSource": "CLOUD_AND_ENTERPRISE_AGENTS"
+				},
+				{
+					"shouldExcludeAlertSuppressionWindows": true,
+					"showTimeseriesOverallBaseline": false,
+					"visualMode": "Half screen",
+					"filters": {
+						"Test Labels": "[{{labels.testVoiceLabel.groupId}}]"
+					},
+					"groupBy": "TEST",
+					"type": "Time Series: Line",
+					"title": "MOS - Voice",
+					"metricGroup": "VOIP",
+					"measure": {
+						"type": "MEAN"
+					},
+					"metric": "VOIP_MOS",
+					"fixedTimespan": {
+						"unit": "Days",
+						"value": 1
+					},
+					"dataSource": "CLOUD_AND_ENTERPRISE_AGENTS",
+					"isTimeseriesOneChartPerLine": false
+				},
+				{
+					"shouldExcludeAlertSuppressionWindows": true,
+					"showTimeseriesOverallBaseline": false,
+					"visualMode": "Half screen",
+					"filters": {
+						"Test Labels": "[{{labels.testVoiceLabel.groupId}}]"
+					},
+					"groupBy": "TEST",
+					"type": "Time Series: Line",
+					"title": "Discards - Voice",
+					"metricGroup": "VOIP",
+					"measure": {
+						"type": "MEAN"
+					},
+					"metric": "VOIP_DISCARDS",
+					"fixedTimespan": {
+						"unit": "Days",
+						"value": 1
+					},
+					"dataSource": "CLOUD_AND_ENTERPRISE_AGENTS",
+					"isTimeseriesOneChartPerLine": false
+				},
+				{
+					"shouldExcludeAlertSuppressionWindows": true,
+					"showTimeseriesOverallBaseline": false,
+					"visualMode": "Half screen",
+					"filters": {
+						"Test Labels": "[{{labels.testVoiceLabel.groupId}}]"
+					},
+					"groupBy": "TEST",
+					"type": "Time Series: Line",
+					"title": "Loss - Voice",
+					"metricGroup": "VOIP",
+					"measure": {
+						"type": "MEAN"
+					},
+					"metric": "VOIP_LOSS",
+					"fixedTimespan": {
+						"unit": "Days",
+						"value": 1
+					},
+					"dataSource": "CLOUD_AND_ENTERPRISE_AGENTS",
+					"isTimeseriesOneChartPerLine": false
+				},
+				{
+					"shouldExcludeAlertSuppressionWindows": true,
+					"showTimeseriesOverallBaseline": false,
+					"visualMode": "Half screen",
+					"filters": {
+						"Test Labels": "[{{labels.testVoiceLabel.groupId}}]"
+					},
+					"groupBy": "TEST",
+					"type": "Time Series: Line",
+					"title": "Latency - Voice",
+					"metricGroup": "VOIP",
+					"measure": {
+						"type": "MEAN"
+					},
+					"metric": "VOIP_LATENCY",
+					"fixedTimespan": {
+						"unit": "Days",
+						"value": 1
+					},
+					"dataSource": "CLOUD_AND_ENTERPRISE_AGENTS",
+					"isTimeseriesOneChartPerLine": false
+				},
+				{
+					"shouldExcludeAlertSuppressionWindows": true,
+					"showTimeseriesOverallBaseline": false,
+					"visualMode": "Half screen",
+					"filters": {
+						"Test Labels": "[{{labels.testVideoLabel.groupId}}]"
+					},
+					"groupBy": "TEST",
+					"type": "Time Series: Line",
+					"title": "Packet Loss - Video",
+					"metricGroup": "AGENT_TO_AGENT",
+					"measure": {
+						"type": "MEAN"
+					},
+					"metric": "ONE_WAY_NET_LOSS_TO_TARGET",
+					"fixedTimespan": {
+						"unit": "Days",
+						"value": 1
+					},
+					"dataSource": "CLOUD_AND_ENTERPRISE_AGENTS",
+					"isTimeseriesOneChartPerLine": false,
+					"direction": "TO_TARGET"
+				},
+				{
+					"shouldExcludeAlertSuppressionWindows": true,
+					"showTimeseriesOverallBaseline": false,
+					"visualMode": "Half screen",
+					"filters": {
+						"Test Labels": "[{{labels.testVideoLabel.groupId}}]"
+					},
+					"groupBy": "TEST",
+					"type": "Time Series: Line",
+					"title": "Latency - Video",
+					"metricGroup": "AGENT_TO_AGENT",
+					"measure": {
+						"type": "MEAN"
+					},
+					"metric": "ONE_WAY_NET_LOSS_TO_TARGET",
+					"fixedTimespan": {
+						"unit": "Days",
+						"value": 1
+					},
+					"dataSource": "CLOUD_AND_ENTERPRISE_AGENTS",
+					"isTimeseriesOneChartPerLine": false,
+					"direction": "TO_TARGET"
+				},
+				{
+					"filter": {
+						"filters": [
+							{
+								"value": "{{labels.testLabel.groupId}}",
+								"key": "Label ID"
+							}
+						],
+						"type": "all"
+					},
+					"shouldExcludeAlertSuppressionWindows": false,
+					"exclude": {
+						"filters": [],
+						"type": "all"
+					},
+					"fixedTimespan": {
+						"unit": "Hours",
+						"value": 12
+					},
+					"type": "Test Table",
+					"title": "Webex Tests"
+				},
+				{
+					"shouldExcludeAlertSuppressionWindows": true,
+					"visualMode": "Full",
+					"filters": {
+						"Test Labels": "[{{labels.testLabel.groupId}}]"
+					},
+					"type": "Multi Metric Table",
+					"title": "Voice and Video (90th)",
+					"compareToPreviousValue": true,
+					"multiMetricColumns": [
+						{
+							"metricGroup": "VOIP",
+							"measure": {
+								"percentileValue": 90,
+								"type": "NTH_PERCENTILE"
+							},
+							"metric": "VOIP_MOS",
+							"filters": {
+								"AGENT": []
+							},
+							"dataSource": "CLOUD_AND_ENTERPRISE_AGENTS"
+						},
+						{
+							"metricGroup": "VOIP",
+							"measure": {
+								"percentileValue": 90,
+								"type": "NTH_PERCENTILE"
+							},
+							"metric": "VOIP_DISCARDS",
+							"filters": {
+								"AGENT": []
+							},
+							"dataSource": "CLOUD_AND_ENTERPRISE_AGENTS"
+						},
+						{
+							"metricGroup": "VOIP",
+							"measure": {
+								"percentileValue": 90,
+								"type": "NTH_PERCENTILE"
+							},
+							"metric": "VOIP_LOSS",
+							"filters": {
+								"AGENT": []
+							},
+							"dataSource": "CLOUD_AND_ENTERPRISE_AGENTS"
+						},
+						{
+							"metricGroup": "VOIP",
+							"measure": {
+								"percentileValue": 90,
+								"type": "NTH_PERCENTILE"
+							},
+							"metric": "VOIP_LATENCY",
+							"filters": {
+								"AGENT": []
+							},
+							"dataSource": "CLOUD_AND_ENTERPRISE_AGENTS"
+						},
+						{
+							"metricGroup": "AGENT_TO_AGENT",
+							"measure": {
+								"percentileValue": 90,
+								"type": "NTH_PERCENTILE"
+							},
+							"metric": "ONE_WAY_NET_LOSS_TO_TARGET",
+							"filters": {
+								"AGENT": []
+							},
+							"dataSource": "CLOUD_AND_ENTERPRISE_AGENTS",
+							"direction": "TO_TARGET"
+						},
+						{
+							"metricGroup": "AGENT_TO_AGENT",
+							"measure": {
+								"percentileValue": 90,
+								"type": "NTH_PERCENTILE"
+							},
+							"metric": "ONE_WAY_NET_LATENCY_TO_TARGET",
+							"filters": {
+								"AGENT": []
+							},
+							"dataSource": "CLOUD_AND_ENTERPRISE_AGENTS",
+							"direction": "TO_TARGET"
+						}
+					],
+					"metricGroup": "AGENT_TO_AGENT",
+					"metric": "ONE_WAY_NET_LATENCY_TO_TARGET",
+					"sortBy": "Default (Agents)",
+					"dataSource": "CLOUD_AND_ENTERPRISE_AGENTS",
+					"rowGroupBy": "AGENT",
+					"direction": "TO_TARGET"
+				},
+				{
+					"alertTypes": [
+						"DNS Server",
+						"Web - HTTP Server",
+						"Routing - BGP",
+						"Voice - RTP Stream",
+						"Network - End-to-End (Agent)"
+					],
+					"limitTo": 10,
+					"filters": {
+						"Test Labels": "[{{labels.testLabel.groupId}}]"
+					},
+					"type": "Alert List",
+					"title": "Webex Alert List",
+					"activeWithin": {
+						"unit": "Hours",
+						"value": 8
+					}
+				}
+			]
+		}
+	},
+	"groupings": [],
+	"deploymentStrategy": {
+		"voiceAlert": "create",
+		"testVoiceLabel": "update",
+		"testVideoLabel": "update",
+		"testLabel": "update",
+		"videoAlert": "create",
+		"voiceTest": "ignore",
+		"dnsTest": "ignore",
+		"webexDashboard": "ignore",
+		"videoTest": "ignore",
+		"serverTest": "ignore"
+	},
+	"resourceInclusion": {},
+	"templateCollections": []
+}
