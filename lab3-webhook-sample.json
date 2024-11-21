@@ -1,0 +1,31 @@
+{
+    "eventId": "0-0XYZ",
+    "eventType": "THOUSANDEYES_ALERT_NOTIFICATION",
+    "id": 0,
+    "type": "2",
+    "alert": {
+        "id": "0XYZ",
+        "url": " https://app.thousandeyes.com/alerts/list/?alertId=0XYZ",
+        "type": "Http",
+        "severity": "INFO",
+        "test": {
+            "id": "0",
+            "name": "Sample Test",
+            "url": "https://app.thousandeyes.com/view/tests/?testId=0"
+        },
+        "targets": [
+            "123"
+        ],
+        "rule": {
+            "id": 0,
+            "name": "Sample Rule",
+            "expression": "Response Time ≥ 111 ms",
+            "notes": "Sample Notes"
+        },
+        "triggered": 1684920866354,
+        "cleared": 1684930920000,
+        "details": [
+            "{'metricsAtStart': 'Response Time: 888 ms', 'source': {'id': '0','name': 'Sample Agent 1'}}"
+        ]
+    }
+}
